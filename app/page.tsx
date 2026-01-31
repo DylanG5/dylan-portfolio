@@ -352,12 +352,42 @@ export default function Home() {
                   })}
 
                   {/* Experience entries */}
-                  {sortedExps.map((exp, index) => {
-                    const startPos = ((exp.startDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
-                    const endPos = ((exp.endDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
-                    const topPx = ((100 - endPos) / 100) * timelineHeightPx; // Inverted - more recent at top
-                    const heightPx = ((endPos - startPos) / 100) * timelineHeightPx;
-                    const isLeft = index % 2 === 0;
+                  {(() => {
+                    // Track the bottom position of cards on each side to prevent overlaps
+                    const leftBottoms = [];
+                    const rightBottoms = [];
+
+                    return sortedExps.map((exp, index) => {
+                      const startPos = ((exp.startDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+                      const endPos = ((exp.endDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+                      let topPx = ((100 - endPos) / 100) * timelineHeightPx; // Inverted - more recent at top
+                      const heightPx = ((endPos - startPos) / 100) * timelineHeightPx;
+                      const isLeft = index % 2 === 0;
+
+                      // Estimate card height (duration bar + card content, roughly 200-300px for cards)
+                      const estimatedCardHeight = Math.max(heightPx, 250); // Minimum card size
+                      const cardBottom = topPx + estimatedCardHeight;
+
+                      // Check if this would overlap with previous cards on the same side
+                      const bottomsToCheck = isLeft ? leftBottoms : rightBottoms;
+                      const lastBottom = bottomsToCheck.length > 0 ? bottomsToCheck[bottomsToCheck.length - 1] : 0;
+
+                      // If this card would overlap, shift it down
+                      if (topPx < lastBottom) {
+                        topPx = lastBottom + 20; // 20px gap
+                      }
+
+                      // Record the bottom of this card
+                      const newBottom = topPx + estimatedCardHeight;
+                      if (isLeft) {
+                        leftBottoms.push(newBottom);
+                      } else {
+                        rightBottoms.push(newBottom);
+                      }
+
+                      return { exp, topPx, heightPx, isLeft, index };
+                    });
+                  })().map(({ exp, topPx, heightPx, isLeft, index }) => {
 
                     return (
                       <motion.div
@@ -366,14 +396,12 @@ export default function Home() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
-                        whileHover={{ zIndex: 50 }}
-                        className="absolute w-1/2 group"
+                        className="absolute w-1/2"
                         style={{
                           top: `${topPx}px`,
                           height: `${heightPx}px`,
                           [isLeft ? 'right' : 'left']: '50%',
-                          [isLeft ? 'paddingRight' : 'paddingLeft']: '3rem',
-                          zIndex: 10 - index // Most recent has higher z-index by default
+                          [isLeft ? 'paddingRight' : 'paddingLeft']: '3rem'
                         }}
                       >
                         {/* Duration bar */}
@@ -419,7 +447,7 @@ export default function Home() {
                         {/* Experience card */}
                         <motion.div
                           whileHover={{ scale: 1.02, x: isLeft ? -5 : 5 }}
-                          className={`border-2 p-6 bg-black/80 rounded-lg ${isLeft ? 'mr-auto' : 'ml-auto'} transition-all group-hover:bg-black/95 group-hover:shadow-2xl`}
+                          className={`border-2 p-6 bg-black/40 rounded-lg ${isLeft ? 'mr-auto' : 'ml-auto'}`}
                           style={{ borderColor: `${exp.color}40` }}
                         >
                           <div className="mb-3">
