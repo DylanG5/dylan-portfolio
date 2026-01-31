@@ -352,12 +352,58 @@ export default function Home() {
                   })}
 
                   {/* Experience entries */}
-                  {sortedExps.map((exp, index) => {
+                  {(() => {
+                    // Smart collision detection - assign sides to avoid overlaps
+                    const assignments = [];
+                    const leftSlots = [];
+                    const rightSlots = [];
+
+                    sortedExps.forEach((exp, index) => {
+                      const startTime = exp.startDate.getTime();
+                      const endTime = exp.endDate.getTime();
+
+                      // Check if this experience overlaps with any on the left
+                      const overlapsLeft = leftSlots.some(slot =>
+                        (startTime >= slot.start && startTime <= slot.end) ||
+                        (endTime >= slot.start && endTime <= slot.end) ||
+                        (startTime <= slot.start && endTime >= slot.end)
+                      );
+
+                      // Check if this experience overlaps with any on the right
+                      const overlapsRight = rightSlots.some(slot =>
+                        (startTime >= slot.start && startTime <= slot.end) ||
+                        (endTime >= slot.start && endTime <= slot.end) ||
+                        (startTime <= slot.start && endTime >= slot.end)
+                      );
+
+                      // Assign to the side with no overlap, or prefer alternating if both are free
+                      let isLeft;
+                      if (overlapsLeft && !overlapsRight) {
+                        isLeft = false;
+                      } else if (!overlapsLeft && overlapsRight) {
+                        isLeft = true;
+                      } else {
+                        // Both sides free or both overlap - alternate
+                        isLeft = index % 2 === 0;
+                      }
+
+                      // Record this slot
+                      const slot = { start: startTime, end: endTime };
+                      if (isLeft) {
+                        leftSlots.push(slot);
+                      } else {
+                        rightSlots.push(slot);
+                      }
+
+                      assignments.push({ exp, isLeft, index });
+                    });
+
+                    return assignments;
+                  })().map(({ exp, isLeft, index }) => {
                     const startPos = ((exp.startDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
                     const endPos = ((exp.endDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
                     const topPx = ((100 - endPos) / 100) * timelineHeightPx; // Inverted - more recent at top
                     const heightPx = ((endPos - startPos) / 100) * timelineHeightPx;
-                    const isLeft = index % 2 === 0;
 
                     return (
                       <motion.div
