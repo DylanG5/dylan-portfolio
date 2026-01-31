@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Github, Linkedin, Mail, Phone, ExternalLink, Download, Terminal, ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
@@ -354,63 +355,53 @@ export default function Home() {
                   {/* Experience entries */}
                   {(() => {
                     // Track the bottom position of cards on each side to prevent overlaps
-                    const leftBottoms = [];
-                    const rightBottoms = [];
+                    const leftCardBottoms = [];
+                    const rightCardBottoms = [];
 
                     return sortedExps.map((exp, index) => {
                       const startPos = ((exp.startDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
                       const endPos = ((exp.endDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
-                      let topPx = ((100 - endPos) / 100) * timelineHeightPx; // Inverted - more recent at top
+                      const timelineTopPx = ((100 - endPos) / 100) * timelineHeightPx; // Timeline position (stays fixed)
                       const heightPx = ((endPos - startPos) / 100) * timelineHeightPx;
                       const isLeft = index % 2 === 0;
 
-                      // Estimate card height (duration bar + card content, roughly 200-300px for cards)
-                      const estimatedCardHeight = Math.max(heightPx, 250); // Minimum card size
-                      const cardBottom = topPx + estimatedCardHeight;
+                      // Estimate card content height (roughly 250-350px)
+                      const estimatedCardHeight = 300;
 
-                      // Check if this would overlap with previous cards on the same side
-                      const bottomsToCheck = isLeft ? leftBottoms : rightBottoms;
+                      // Start with timeline position for the card
+                      let cardTopPx = timelineTopPx;
+
+                      // Check if this card would overlap with previous cards on the same side
+                      const bottomsToCheck = isLeft ? leftCardBottoms : rightCardBottoms;
                       const lastBottom = bottomsToCheck.length > 0 ? bottomsToCheck[bottomsToCheck.length - 1] : 0;
 
-                      // If this card would overlap, shift it down
-                      if (topPx < lastBottom) {
-                        topPx = lastBottom + 20; // 20px gap
+                      // If this card would overlap, shift ONLY THE CARD down
+                      if (cardTopPx < lastBottom) {
+                        cardTopPx = lastBottom + 20; // 20px gap
                       }
 
                       // Record the bottom of this card
-                      const newBottom = topPx + estimatedCardHeight;
+                      const newBottom = cardTopPx + estimatedCardHeight;
                       if (isLeft) {
-                        leftBottoms.push(newBottom);
+                        leftCardBottoms.push(newBottom);
                       } else {
-                        rightBottoms.push(newBottom);
+                        rightCardBottoms.push(newBottom);
                       }
 
-                      return { exp, topPx, heightPx, isLeft, index };
+                      return { exp, timelineTopPx, cardTopPx, heightPx, isLeft, index };
                     });
-                  })().map(({ exp, topPx, heightPx, isLeft, index }) => {
+                  })().map(({ exp, timelineTopPx, cardTopPx, heightPx, isLeft, index }) => {
 
                     return (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="absolute w-1/2"
-                        style={{
-                          top: `${topPx}px`,
-                          height: `${heightPx}px`,
-                          [isLeft ? 'right' : 'left']: '50%',
-                          [isLeft ? 'paddingRight' : 'paddingLeft']: '3rem'
-                        }}
-                      >
-                        {/* Duration bar */}
+                      <React.Fragment key={index}>
+                        {/* Duration bar - stays at timeline position */}
                         <div
-                          className="absolute top-0 w-1 rounded-full"
+                          className="absolute w-1 rounded-full"
                           style={{
                             backgroundColor: exp.color,
+                            top: `${timelineTopPx}px`,
                             height: `${heightPx}px`,
-                            [isLeft ? 'right' : 'left']: isLeft ? 'calc(3rem - 2px)' : 'calc(3rem - 2px)'
+                            left: 'calc(50% - 2px)'
                           }}
                         >
                           {/* Start point */}
@@ -423,32 +414,39 @@ export default function Home() {
                             className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-black"
                             style={{ backgroundColor: exp.color }}
                           ></div>
+
+                          {/* Company logo at midpoint */}
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 w-12 h-12 bg-black rounded-full p-2 border-2 flex items-center justify-center"
+                            style={{
+                              borderColor: exp.color,
+                              top: '50%',
+                              transform: 'translate(-50%, -50%)'
+                            }}
+                          >
+                            <Image
+                              src={exp.logo}
+                              alt={exp.company}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
                         </div>
 
-                        {/* Company logo at midpoint */}
-                        <div
-                          className="absolute w-12 h-12 bg-black rounded-full p-2 border-2 flex items-center justify-center"
-                          style={{
-                            borderColor: exp.color,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            [isLeft ? 'right' : 'left']: 'calc(3rem - 24px)'
-                          }}
-                        >
-                          <Image
-                            src={exp.logo}
-                            alt={exp.company}
-                            width={48}
-                            height={48}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-
-                        {/* Experience card */}
+                        {/* Experience card - can shift to avoid overlaps */}
                         <motion.div
+                          initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6 }}
                           whileHover={{ scale: 1.02, x: isLeft ? -5 : 5 }}
-                          className={`border-2 p-6 bg-black/40 rounded-lg ${isLeft ? 'mr-auto' : 'ml-auto'}`}
-                          style={{ borderColor: `${exp.color}40` }}
+                          className={`absolute w-1/2 border-2 p-6 bg-black/40 rounded-lg`}
+                          style={{
+                            top: `${cardTopPx}px`,
+                            [isLeft ? 'right' : 'left']: 'calc(50% + 3rem)',
+                            borderColor: `${exp.color}40`
+                          }}
                         >
                           <div className="mb-3">
                             <h3 className="text-lg font-bold mb-1" style={{ color: exp.color }}>
@@ -474,7 +472,7 @@ export default function Home() {
                             ))}
                           </ul>
                         </motion.div>
-                      </motion.div>
+                      </React.Fragment>
                     );
                   })}
                 </div>
