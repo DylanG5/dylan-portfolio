@@ -320,143 +320,136 @@ export default function Home() {
             <div className="h-1 w-24 bg-[#00ff88]"></div>
           </motion.div>
 
-          {/* Universal Timeline */}
-          <div className="relative overflow-x-auto pb-12">
-            {/* Timeline Bar - horizontal */}
-            <div className="relative h-96 min-w-[800px]">
-              {/* Background timeline */}
-              <div className="absolute top-12 left-0 right-0 h-2 bg-white/10 rounded-full"></div>
+          {/* Vertical Timeline with Duration Bars */}
+          <div className="relative max-w-5xl mx-auto">
+            {/* Calculate total timeline height based on date range */}
+            {(() => {
+              const timelineHeightPx = 1200; // Total height in pixels
+              const sortedExps = [...experiences].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
-              {/* Year markers */}
-              <div className="absolute top-0 left-0 right-0 flex justify-between px-4">
-                {['2023', '2024', '2025', '2026'].map((year, i) => (
-                  <div key={year} className="flex flex-col items-center">
-                    <div className="font-mono text-sm text-white/40">{year}</div>
-                    <div className="w-px h-4 bg-white/20 mt-2"></div>
-                  </div>
-                ))}
-              </div>
+              return (
+                <div className="relative" style={{ height: `${timelineHeightPx}px` }}>
+                  {/* Center vertical line */}
+                  <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-white/10 -translate-x-1/2"></div>
 
-              {/* Experience bars */}
-              {experiences.map((exp, index) => {
-                const startPos = getTimelinePosition(exp.startDate);
-                const endPos = getTimelinePosition(exp.endDate);
-                const width = endPos - startPos;
-                const yOffset = 80 + (index * 70);
+                  {/* Year markers on the timeline */}
+                  {['2023', '2024', '2025', '2026'].map((year) => {
+                    const yearDate = new Date(`${year}-01-01`);
+                    const position = ((yearDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+                    const topPx = (position / 100) * timelineHeightPx;
 
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="absolute"
-                    style={{
-                      left: `${startPos}%`,
-                      top: `${yOffset}px`,
-                      width: `${width}%`,
-                    }}
-                  >
-                    {/* Duration bar */}
-                    <div
-                      className="h-3 rounded-full relative group cursor-pointer"
-                      style={{ backgroundColor: exp.color }}
-                    >
-                      {/* Start point */}
+                    return (
                       <div
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-black"
-                        style={{ backgroundColor: exp.color }}
-                      ></div>
-                      {/* End point */}
-                      <div
-                        className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-black"
-                        style={{ backgroundColor: exp.color }}
-                      ></div>
+                        key={year}
+                        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4"
+                        style={{ top: `${topPx}px` }}
+                      >
+                        <div className="w-16 h-px bg-white/20"></div>
+                        <div className="font-mono text-sm text-white/40 bg-black px-2">{year}</div>
+                        <div className="w-16 h-px bg-white/20"></div>
+                      </div>
+                    );
+                  })}
 
-                      {/* Company logo on timeline */}
-                      <div className="absolute left-1/2 -translate-x-1/2 -top-10 w-8 h-8 bg-black rounded-full p-1.5 border-2" style={{ borderColor: exp.color }}>
-                        <Image
-                          src={exp.logo}
-                          alt={exp.company}
-                          width={32}
-                          height={32}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
+                  {/* Experience entries */}
+                  {sortedExps.map((exp, index) => {
+                    const startPos = ((exp.startDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+                    const endPos = ((exp.endDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+                    const topPx = (startPos / 100) * timelineHeightPx;
+                    const heightPx = ((endPos - startPos) / 100) * timelineHeightPx;
+                    const isLeft = index % 2 === 0;
 
-                      {/* Tooltip on hover */}
-                      <div className={`absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 ${
-                        startPos < 20 ? 'left-0' : startPos > 70 ? 'right-0' : 'left-1/2 -translate-x-1/2'
-                      }`}>
-                        <div className="bg-black border-2 px-4 py-2 rounded shadow-xl" style={{ borderColor: exp.color }}>
-                          <div className="font-bold text-sm" style={{ color: exp.color }}>{exp.company}</div>
-                          <div className="text-xs text-white/80">{exp.role}</div>
-                          <div className="text-xs text-white/60 font-mono">{exp.period}</div>
+                    return (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="absolute w-1/2"
+                        style={{
+                          top: `${topPx}px`,
+                          height: `${heightPx}px`,
+                          [isLeft ? 'right' : 'left']: '50%',
+                          [isLeft ? 'paddingRight' : 'paddingLeft']: '3rem'
+                        }}
+                      >
+                        {/* Duration bar */}
+                        <div
+                          className="absolute top-0 w-1 rounded-full"
+                          style={{
+                            backgroundColor: exp.color,
+                            height: `${heightPx}px`,
+                            [isLeft ? 'right' : 'left']: isLeft ? 'calc(3rem - 2px)' : 'calc(3rem - 2px)'
+                          }}
+                        >
+                          {/* Start point */}
+                          <div
+                            className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-black"
+                            style={{ backgroundColor: exp.color }}
+                          ></div>
+                          {/* End point */}
+                          <div
+                            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-black"
+                            style={{ backgroundColor: exp.color }}
+                          ></div>
                         </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
 
-            {/* Experience Cards Below Timeline */}
-            <div className="mt-12 space-y-6">
-              {experiences.map((exp, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="border-2 p-6 hover:scale-[1.01] transition-all group bg-black/40"
-                  style={{ borderColor: `${exp.color}40` }}
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-                    <div className="flex gap-4 items-start">
-                      {/* Company Logo */}
-                      <div className="w-12 h-12 bg-white/5 rounded-lg p-2 flex-shrink-0 border-2" style={{ borderColor: `${exp.color}40` }}>
-                        <Image
-                          src={exp.logo}
-                          alt={exp.company}
-                          width={48}
-                          height={48}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-bold transition-colors" style={{ color: exp.color }}>
-                            {exp.role}
-                          </h3>
+                        {/* Company logo at midpoint */}
+                        <div
+                          className="absolute w-12 h-12 bg-black rounded-full p-2 border-2 flex items-center justify-center"
+                          style={{
+                            borderColor: exp.color,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            [isLeft ? 'right' : 'left']: 'calc(3rem - 24px)'
+                          }}
+                        >
+                          <Image
+                            src={exp.logo}
+                            alt={exp.company}
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-contain"
+                          />
                         </div>
-                        <div className="text-lg font-semibold text-white/60 flex items-center gap-2">
-                          {exp.company}
-                          {exp.website && (
-                            <a href={`https://${exp.website}`} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink size={14} className="hover:text-white transition-colors" />
-                            </a>
-                          )}
-                        </div>
-                        <div className="text-sm text-white/40 mt-1">{exp.location}</div>
-                      </div>
-                    </div>
-                    <div className="font-mono text-sm text-white/60 bg-white/5 px-3 py-1 rounded w-fit">
-                      {exp.period}
-                    </div>
-                  </div>
-                  <ul className="space-y-2 text-white/70">
-                    {exp.highlights.map((highlight, i) => (
-                      <li key={i} className="flex gap-3">
-                        <span className="mt-1 flex-shrink-0" style={{ color: exp.color }}>▸</span>
-                        <span>{highlight}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              ))}
-            </div>
+
+                        {/* Experience card */}
+                        <motion.div
+                          whileHover={{ scale: 1.02, x: isLeft ? -5 : 5 }}
+                          className={`border-2 p-6 bg-black/40 rounded-lg ${isLeft ? 'mr-auto' : 'ml-auto'}`}
+                          style={{ borderColor: `${exp.color}40` }}
+                        >
+                          <div className="mb-3">
+                            <h3 className="text-lg font-bold mb-1" style={{ color: exp.color }}>
+                              {exp.role}
+                            </h3>
+                            <div className="text-base font-semibold text-white/60 flex items-center gap-2">
+                              {exp.company}
+                              {exp.website && (
+                                <a href={`https://${exp.website}`} target="_blank" rel="noopener noreferrer">
+                                  <ExternalLink size={12} className="hover:text-white transition-colors" />
+                                </a>
+                              )}
+                            </div>
+                            <div className="text-xs text-white/40 mt-1">{exp.location}</div>
+                            <div className="font-mono text-xs text-white/50 mt-2">{exp.period}</div>
+                          </div>
+                          <ul className="space-y-1.5 text-sm text-white/70">
+                            {exp.highlights.map((highlight, i) => (
+                              <li key={i} className="flex gap-2">
+                                <span className="mt-1 flex-shrink-0 text-xs" style={{ color: exp.color }}>▸</span>
+                                <span>{highlight}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </motion.div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </section>
