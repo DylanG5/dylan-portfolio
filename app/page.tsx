@@ -9,6 +9,7 @@ export default function Home() {
     {
       role: "Machine Learning Engineer Intern",
       company: "Shopify",
+      logo: "/shopify_glyph.svg",
       location: "Toronto, ON",
       period: "May 2025 – August 2025",
       startDate: new Date('2025-05-01'),
@@ -23,6 +24,7 @@ export default function Home() {
     {
       role: "Software Engineering Intern - Machine Learning",
       company: "Evertz Microsystems",
+      logo: "/evertz.logo.svg",
       location: "Burlington, ON",
       period: "May 2024 – April 2025",
       startDate: new Date('2024-05-01'),
@@ -37,6 +39,7 @@ export default function Home() {
     {
       role: "Software Team Lead / Vice President",
       company: "McMaster Exoskeleton",
+      logo: "/exo_logo_gold_black.png",
       location: "Hamilton, ON",
       period: "November 2024 – Present",
       startDate: new Date('2024-11-01'),
@@ -52,6 +55,7 @@ export default function Home() {
     {
       role: "Software Engineering Intern - Full Stack",
       company: "Evertz Microsystems",
+      logo: "/evertz.logo.svg",
       location: "Burlington, ON",
       period: "May 2023 – August 2023",
       startDate: new Date('2023-05-01'),
@@ -370,6 +374,17 @@ export default function Home() {
                         style={{ backgroundColor: exp.color }}
                       ></div>
 
+                      {/* Company logo on timeline */}
+                      <div className="absolute left-1/2 -translate-x-1/2 -top-10 w-8 h-8 bg-black rounded-full p-1.5 border-2" style={{ borderColor: exp.color }}>
+                        <Image
+                          src={exp.logo}
+                          alt={exp.company}
+                          width={32}
+                          height={32}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+
                       {/* Tooltip on hover */}
                       <div className={`absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 ${
                         startPos < 20 ? 'left-0' : startPos > 70 ? 'right-0' : 'left-1/2 -translate-x-1/2'
@@ -399,22 +414,33 @@ export default function Home() {
                   style={{ borderColor: `${exp.color}40` }}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: exp.color }}></div>
-                        <h3 className="text-xl font-bold transition-colors" style={{ color: exp.color }}>
-                          {exp.role}
-                        </h3>
+                    <div className="flex gap-4 items-start">
+                      {/* Company Logo */}
+                      <div className="w-12 h-12 bg-white/5 rounded-lg p-2 flex-shrink-0 border-2" style={{ borderColor: `${exp.color}40` }}>
+                        <Image
+                          src={exp.logo}
+                          alt={exp.company}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                        />
                       </div>
-                      <div className="text-lg font-semibold text-white/60 flex items-center gap-2">
-                        {exp.company}
-                        {exp.website && (
-                          <a href={`https://${exp.website}`} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink size={14} className="hover:text-white transition-colors" />
-                          </a>
-                        )}
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold transition-colors" style={{ color: exp.color }}>
+                            {exp.role}
+                          </h3>
+                        </div>
+                        <div className="text-lg font-semibold text-white/60 flex items-center gap-2">
+                          {exp.company}
+                          {exp.website && (
+                            <a href={`https://${exp.website}`} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink size={14} className="hover:text-white transition-colors" />
+                            </a>
+                          )}
+                        </div>
+                        <div className="text-sm text-white/40 mt-1">{exp.location}</div>
                       </div>
-                      <div className="text-sm text-white/40 mt-1">{exp.location}</div>
                     </div>
                     <div className="font-mono text-sm text-white/60 bg-white/5 px-3 py-1 rounded w-fit">
                       {exp.period}
