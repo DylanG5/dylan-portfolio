@@ -60,7 +60,7 @@ export default function Home() {
       period: "May 2023 – August 2023",
       startDate: new Date('2023-05-01'),
       endDate: new Date('2023-08-31'),
-      color: "#ffaa00",
+      color: "#00bfff",
       highlights: [
         "Built front-end web applications using React and Redux, improving client productivity by up to 50% through real-time feature deployment.",
         "Increased end-to-end testing speeds by 80% using Cypress and CucumberJS, and created a no-code GUI tool for non-developers to author automated tests, reducing validation time by 50%."
@@ -325,7 +325,7 @@ export default function Home() {
             {/* Calculate total timeline height based on date range */}
             {(() => {
               const timelineHeightPx = 1200; // Total height in pixels
-              const sortedExps = [...experiences].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+              const sortedExps = [...experiences].sort((a, b) => b.startDate.getTime() - a.startDate.getTime()); // Reverse sort - most recent first
 
               return (
                 <div className="relative" style={{ height: `${timelineHeightPx}px` }}>
@@ -333,9 +333,9 @@ export default function Home() {
                   <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-white/10 -translate-x-1/2"></div>
 
                   {/* Year markers on the timeline */}
-                  {['2023', '2024', '2025', '2026'].map((year) => {
+                  {['2026', '2025', '2024', '2023'].map((year) => { // Reversed year order
                     const yearDate = new Date(`${year}-01-01`);
-                    const position = ((yearDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+                    const position = 100 - ((yearDate.getTime() - timelineStart.getTime()) / totalDuration) * 100; // Inverted position
                     const topPx = (position / 100) * timelineHeightPx;
 
                     return (
@@ -355,7 +355,7 @@ export default function Home() {
                   {sortedExps.map((exp, index) => {
                     const startPos = ((exp.startDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
                     const endPos = ((exp.endDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
-                    const topPx = (startPos / 100) * timelineHeightPx;
+                    const topPx = ((100 - endPos) / 100) * timelineHeightPx; // Inverted - more recent at top
                     const heightPx = ((endPos - startPos) / 100) * timelineHeightPx;
                     const isLeft = index % 2 === 0;
 
