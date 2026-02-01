@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Github, Linkedin, Mail, Phone, ExternalLink, Download, Terminal, ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
@@ -44,7 +43,7 @@ export default function Home() {
       location: "Hamilton, ON",
       period: "November 2024 – Present",
       startDate: new Date('2024-11-01'),
-      endDate: new Date('2026-01-31'), // Use fixed date to avoid hydration mismatch
+      endDate: new Date('2026-01-31'),
       color: "#ff00ff",
       website: "macexo.com",
       highlights: [
@@ -80,6 +79,13 @@ export default function Home() {
 
   const projects = [
     {
+      name: "TraceAI - Code Provenance Tool",
+      description: "LLM-native code provenance and PR review tool that makes AI-generated code transparent by tracking the conversations that created it. Built at a 24-hour hackathon with a team of 3.",
+      tech: ["Python", "TypeScript", "GitHub API", "LLM"],
+      github: "https://github.com/umarkhan135/TraceAI",
+      stars: 3
+    },
+    {
       name: "Sanskrit Cipher",
       description: "AI-powered tool for researchers to reassemble ancient Sanskrit text fragments using advanced NLP and pattern recognition.",
       tech: ["TypeScript", "Python", "NLP", "AI"],
@@ -105,6 +111,12 @@ export default function Home() {
       tech: ["Python", "Google Calendar API"],
       github: "https://github.com/DylanG5/avenue2googleDH9",
       stars: 2
+    },
+    {
+      name: "Personal Portfolio",
+      description: "Modern, responsive portfolio website with vertical timeline showcasing experience, projects, and skills. Features smooth animations and collision-aware card positioning.",
+      tech: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
+      github: "https://github.com/DylanG5/dylan-portfolio"
     }
   ];
 
@@ -352,115 +364,60 @@ export default function Home() {
                   })}
 
                   {/* Experience entries */}
-                  {(() => {
-                    // Calculate positions for all entries first
-                    const entries = sortedExps.map((exp, index) => {
-                      const startPos = ((exp.startDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
-                      const endPos = ((exp.endDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
-                      const barTopPx = ((100 - endPos) / 100) * timelineHeightPx;
-                      const barHeightPx = ((endPos - startPos) / 100) * timelineHeightPx;
-                      const isLeft = index % 2 === 0;
+                  {sortedExps.map((exp, index) => {
+                    const startPos = ((exp.startDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+                    const endPos = ((exp.endDate.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+                    const topPx = ((100 - endPos) / 100) * timelineHeightPx; // Inverted - more recent at top
+                    const heightPx = ((endPos - startPos) / 100) * timelineHeightPx;
+                    const isLeft = index % 2 === 0;
 
-                      // Calculate card height based on content
-                      // Each highlight averages 2-3 lines when wrapped, accounting for long text
-                      const baseHeight = 200; // Header, location, period, padding
-                      const avgCharsPerLine = 75; // Approximate chars per line in the card width
-
-                      // Calculate total height for all highlights
-                      let totalHighlightHeight = 0;
-                      exp.highlights.forEach(highlight => {
-                        const lines = Math.ceil(highlight.length / avgCharsPerLine);
-                        totalHighlightHeight += lines * 24 + 6; // 24px line height + 6px gap (space-y-1.5)
-                      });
-
-                      const cardHeight = baseHeight + totalHighlightHeight;
-
-                      return {
-                        exp,
-                        index,
-                        isLeft,
-                        barTopPx,
-                        barHeightPx,
-                        cardHeight,
-                        cardTopPx: barTopPx, // Initial position aligned with timeline bar
-                        logoMidpointPx: barTopPx + (barHeightPx / 2) // Natural logo position
-                      };
-                    });
-
-                    // Apply collision detection and adjust card positions
-                    const cardPadding = 40; // Gap between cards
-                    const logoSize = 48; // w-12 h-12
-                    const logoMinDistance = 60; // Minimum vertical distance between logo centers
-
-                    let lastLeftBottom = 0;
-                    let lastRightBottom = 0;
-
-                    entries.forEach(entry => {
-                      const lastBottom = entry.isLeft ? lastLeftBottom : lastRightBottom;
-
-                      // If card would overlap with previous card on same side, shift it down
-                      if (entry.cardTopPx < lastBottom + cardPadding) {
-                        entry.cardTopPx = lastBottom + cardPadding;
-                      }
-
-                      // Update the bottom position for this side
-                      const cardBottom = entry.cardTopPx + entry.cardHeight;
-                      if (entry.isLeft) {
-                        lastLeftBottom = cardBottom;
-                      } else {
-                        lastRightBottom = cardBottom;
-                      }
-                    });
-
-                    // Check for logo overlaps and shift them vertically
-                    let lastLogoBottom = 0;
-
-                    entries.forEach((entry, i) => {
-                      // Check if this logo would overlap with any previous logo
-                      const logoTop = entry.logoMidpointPx - (logoSize / 2);
-
-                      if (logoTop < lastLogoBottom) {
-                        // Shift this logo down to avoid overlap
-                        const shift = lastLogoBottom - logoTop;
-                        entry.logoMidpointPx += shift;
-                      }
-
-                      // Update the last logo bottom position
-                      lastLogoBottom = entry.logoMidpointPx + (logoSize / 2);
-                    });
-
-                    return entries;
-                  })().map(({ exp, index, isLeft, barTopPx, barHeightPx, cardTopPx, logoMidpointPx }) => (
-                    <React.Fragment key={index}>
-                      {/* Duration bar - stays at true timeline position */}
-                      <div
-                        className="absolute w-1 rounded-full"
+                    return (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        whileHover={{ zIndex: 50, opacity: 1 }}
+                        className="absolute w-1/2 group"
                         style={{
-                          backgroundColor: exp.color,
-                          top: `${barTopPx}px`,
-                          height: `${barHeightPx}px`,
-                          left: 'calc(50% - 2px)',
-                          zIndex: 1
+                          top: `${topPx}px`,
+                          height: `${heightPx}px`,
+                          [isLeft ? 'right' : 'left']: '50%',
+                          [isLeft ? 'paddingRight' : 'paddingLeft']: '3rem',
+                          zIndex: 10 - index, // Most recent has higher z-index by default
+                          opacity: index === 0 ? 1 : 0.7 // Most recent fully visible, others more transparent
                         }}
                       >
-                        {/* Start point */}
+                        {/* Duration bar */}
                         <div
-                          className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-black"
-                          style={{ backgroundColor: exp.color }}
-                        ></div>
-                        {/* End point */}
-                        <div
-                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-black"
-                          style={{ backgroundColor: exp.color }}
-                        ></div>
+                          className="absolute top-0 w-1 rounded-full"
+                          style={{
+                            backgroundColor: exp.color,
+                            height: `${heightPx}px`,
+                            [isLeft ? 'right' : 'left']: isLeft ? 'calc(3rem - 2px)' : 'calc(3rem - 2px)'
+                          }}
+                        >
+                          {/* Start point */}
+                          <div
+                            className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-black"
+                            style={{ backgroundColor: exp.color }}
+                          ></div>
+                          {/* End point */}
+                          <div
+                            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-black"
+                            style={{ backgroundColor: exp.color }}
+                          ></div>
+                        </div>
 
-                        {/* Company logo - positioned to avoid vertical overlaps */}
+                        {/* Company logo at midpoint */}
                         <div
-                          className="absolute left-1/2 -translate-x-1/2 w-12 h-12 bg-black rounded-full p-2 border-2 flex items-center justify-center transition-all hover:scale-110"
+                          className="absolute w-12 h-12 bg-black rounded-full p-2 border-2 flex items-center justify-center"
                           style={{
                             borderColor: exp.color,
-                            top: `${logoMidpointPx - barTopPx}px`, // Position relative to bar top
-                            zIndex: 10 + index // Higher index = more recent, appears on top
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            [isLeft ? 'right' : 'left']: 'calc(3rem - 24px)'
                           }}
                         >
                           <Image
@@ -471,49 +428,42 @@ export default function Home() {
                             className="w-full h-full object-contain"
                           />
                         </div>
-                      </div>
 
-                      {/* Experience card - positioned to avoid overlaps */}
-                      <motion.div
-                        initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        whileHover={{ scale: 1.02, x: isLeft ? -5 : 5, zIndex: 10 }}
-                        className="absolute w-1/2 border-2 p-6 bg-black/40 rounded-lg"
-                        style={{
-                          top: `${cardTopPx}px`,
-                          [isLeft ? 'right' : 'left']: 'calc(50% + 3rem)',
-                          borderColor: `${exp.color}40`,
-                          zIndex: 2
-                        }}
-                      >
-                        <div className="mb-3">
-                          <h3 className="text-lg font-bold mb-1" style={{ color: exp.color }}>
-                            {exp.role}
-                          </h3>
-                          <div className="text-base font-semibold text-white/60 flex items-center gap-2">
-                            {exp.company}
-                            {exp.website && (
-                              <a href={`https://${exp.website}`} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink size={12} className="hover:text-white transition-colors" />
-                              </a>
-                            )}
+                        {/* Experience card */}
+                        <motion.div
+                          whileHover={{ scale: 1.02, x: isLeft ? -5 : 5 }}
+                          className={`border-2 p-6 bg-black/95 rounded-lg ${isLeft ? 'mr-auto' : 'ml-auto'} transition-all group-hover:shadow-2xl`}
+                          style={{
+                            borderColor: `${exp.color}40`
+                          }}
+                        >
+                          <div className="mb-3">
+                            <h3 className="text-lg font-bold mb-1" style={{ color: exp.color }}>
+                              {exp.role}
+                            </h3>
+                            <div className="text-base font-semibold text-white/60 flex items-center gap-2">
+                              {exp.company}
+                              {exp.website && (
+                                <a href={`https://${exp.website}`} target="_blank" rel="noopener noreferrer">
+                                  <ExternalLink size={12} className="hover:text-white transition-colors" />
+                                </a>
+                              )}
+                            </div>
+                            <div className="text-xs text-white/40 mt-1">{exp.location}</div>
+                            <div className="font-mono text-xs text-white/50 mt-2">{exp.period}</div>
                           </div>
-                          <div className="text-xs text-white/40 mt-1">{exp.location}</div>
-                          <div className="font-mono text-xs text-white/50 mt-2">{exp.period}</div>
-                        </div>
-                        <ul className="space-y-1.5 text-sm text-white/70">
-                          {exp.highlights.map((highlight, i) => (
-                            <li key={i} className="flex gap-2">
-                              <span className="mt-1 flex-shrink-0 text-xs" style={{ color: exp.color }}>▸</span>
-                              <span>{highlight}</span>
-                            </li>
-                          ))}
-                        </ul>
+                          <ul className="space-y-1.5 text-sm text-white/70">
+                            {exp.highlights.map((highlight, i) => (
+                              <li key={i} className="flex gap-2">
+                                <span className="mt-1 flex-shrink-0 text-xs" style={{ color: exp.color }}>▸</span>
+                                <span>{highlight}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </motion.div>
                       </motion.div>
-                    </React.Fragment>
-                  ))}
+                    );
+                  })}
                 </div>
               );
             })()}
