@@ -83,40 +83,46 @@ export default function Home() {
       description: "LLM-native code provenance and PR review tool that makes AI-generated code transparent by tracking the conversations that created it. Built at a 24-hour hackathon with a team of 3.",
       tech: ["Python", "TypeScript", "GitHub API", "LLM"],
       github: "https://github.com/umarkhan135/TraceAI",
-      stars: 3
+      stars: 3,
+      image: "/trace_logo.jpg"
     },
     {
       name: "Sanskrit Cipher",
       description: "AI-powered tool for researchers to reassemble ancient Sanskrit text fragments using advanced NLP and pattern recognition.",
       tech: ["TypeScript", "Python", "NLP", "AI"],
       github: "https://github.com/DylanG5/sanskrit-cipher",
-      stars: 1
+      stars: 1,
+      image: "/sanskrit_cipher.png"
     },
     {
       name: "Hush - Secure Messaging App",
       description: "End-to-end encrypted messaging app with AES-256 encryption, React Native UI, and Flask server handling asynchronous encryption/decryption for concurrent sessions.",
       tech: ["Flask", "React Native", "Firebase", "AES-256"],
-      github: "https://github.com/DylanG5/Hush"
+      github: "https://github.com/DylanG5/Hush",
+      image: "/hush.png"
     },
     {
-      name: "McMaster Exoskeleton Platform",
+      name: "McMaster Exoskeleton",
       description: "Embedded software and ML systems for a robotic lower limb exoskeleton with real-time gait prediction and safety controls.",
       tech: ["C", "Python", "Embedded Systems", "ML"],
       github: "https://github.com/DylanG5/Exoskeleton-Embedded",
-      website: "https://macexo.com"
+      website: "https://macexo.com",
+      image: "/dylan_presenting.png"
     },
     {
       name: "Avenue to Google Calendar Sync",
       description: "Automation tool to sync McMaster's Avenue LMS deadlines with Google Calendar for students.",
       tech: ["Python", "Google Calendar API"],
       github: "https://github.com/DylanG5/avenue2googleDH9",
-      stars: 2
+      stars: 2,
+      image: "/a2g_logo.png"
     },
     {
       name: "Personal Portfolio",
       description: "Modern, responsive portfolio website with vertical timeline showcasing experience, projects, and skills. Features smooth animations and collision-aware card positioning.",
       tech: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
-      github: "https://github.com/DylanG5/dylan-portfolio"
+      github: "https://github.com/DylanG5/dylan-portfolio",
+      image: "/landing_snapshot.png"
     }
   ];
 
@@ -393,38 +399,53 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8 }}
-                className="border-2 border-white/10 p-8 hover:border-[#00ff88] transition-all group bg-black/40"
+                className="border-2 border-white/10 hover:border-[#00ff88] transition-all group bg-black/40 overflow-hidden"
               >
-                <div className="flex justify-between items-start mb-6">
-                  <Terminal className="text-[#00ff88]" size={36} />
-                  <div className="flex gap-4">
-                    {project.github && (
-                      <a href={project.github} target="_blank" rel="noopener noreferrer" className="hover:text-[#00ff88] transition-colors">
-                        <Github size={22} />
-                      </a>
-                    )}
-                    {project.website && (
-                      <a href={project.website} target="_blank" rel="noopener noreferrer" className="hover:text-[#00ff88] transition-colors">
-                        <ArrowUpRight size={22} />
-                      </a>
-                    )}
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold mb-3 group-hover:text-[#00ff88] transition-colors">{project.name}</h3>
-                <p className="text-white/70 mb-6 leading-relaxed">{project.description}</p>
-                <div className="flex flex-wrap gap-3">
-                  {project.tech.map((tech, i) => (
-                    <span key={i} className="font-mono text-xs px-3 py-1 border border-white/20 text-white/60 uppercase tracking-wider">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-                {project.stars !== undefined && (
-                  <div className="mt-6 flex items-center gap-2 text-sm text-white/40 font-mono">
-                    <Github size={14} />
-                    <span>{project.stars} stars</span>
+                {/* Project Image */}
+                {project.image && (
+                  <div className="relative w-full h-48 bg-black/60 overflow-hidden">
+                    <Image
+                      src={project.image}
+                      alt={project.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
                   </div>
                 )}
+
+                <div className="p-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <Terminal className="text-[#00ff88]" size={36} />
+                    <div className="flex gap-4">
+                      {project.github && (
+                        <a href={project.github} target="_blank" rel="noopener noreferrer" className="hover:text-[#00ff88] transition-colors">
+                          <Github size={22} />
+                        </a>
+                      )}
+                      {project.website && (
+                        <a href={project.website} target="_blank" rel="noopener noreferrer" className="hover:text-[#00ff88] transition-colors">
+                          <ArrowUpRight size={22} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 group-hover:text-[#00ff88] transition-colors">{project.name}</h3>
+                  <p className="text-white/70 mb-6 leading-relaxed">{project.description}</p>
+                  <div className="flex flex-wrap gap-3">
+                    {project.tech.map((tech, i) => (
+                      <span key={i} className="font-mono text-xs px-3 py-1 border border-white/20 text-white/60 uppercase tracking-wider">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                  {project.stars !== undefined && (
+                    <div className="mt-6 flex items-center gap-2 text-sm text-white/40 font-mono">
+                      <Github size={14} />
+                      <span>{project.stars} stars</span>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>
